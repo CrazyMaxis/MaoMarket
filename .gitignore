@@ -1,0 +1,56 @@
+# Папки, генерируемые при сборке
+bin/
+obj/
+
+# Конфигурационные файлы для пользователя
+*.user
+*.userosscache
+*.suo
+.vscode/
+.vs/
+
+# Логи и временные файлы
+*.log
+*.tlog
+*.idb
+*.pdb
+*.cache
+*.pfx
+*.publishsettings
+.env
+
+# Резервные файлы
+*.bak
+*.old
+*.swp
+*.sln.docstates
+
+# Файлы, связанные с Entity Framework Migrations
+Migrations/*_Backup.cs
+Migrations/*_BackupDesigner.cs
+
+# Генерация документации Swagger
+wwwroot/swagger/
+wwwroot/swagger.json
+swagger-output.json
+
+# PostgreSQL (если вы используете инструменты, генерирующие SQL-дампы)
+*.sql
+
+# Windows специфические файлы
+Thumbs.db
+desktop.ini
+
+# Visual Studio Code специфические файлы
+.vscode/
+
+# Secrets (обязательно исключите чувствительные данные)
+secrets.json
+
+# Папки для кэша и временных данных
+logs/
+temp/
+tmp/
+
+# ReSharper
+_ReSharper*/

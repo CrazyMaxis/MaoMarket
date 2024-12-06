@@ -21,9 +21,10 @@ public class JwtTokenService
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim("Role", user.Role)
         };
 
-        var keyString = _configuration["Jwt:Key"];
+        var keyString = _configuration["Jwt:SecretKey"];
         if (string.IsNullOrEmpty(keyString))
         {
             throw new InvalidOperationException("JWT key is not configured.");

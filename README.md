@@ -1,1 +1,3 @@
 # MaoMarket
+
+dotner watch run

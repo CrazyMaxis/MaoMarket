@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
-using System.Security.Claims;
 
 namespace api;
 
@@ -21,6 +20,7 @@ public class Program
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<CommentService>();
         builder.Services.AddSingleton<JwtTokenService>();
+        builder.Services.AddSingleton<MinioService>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>

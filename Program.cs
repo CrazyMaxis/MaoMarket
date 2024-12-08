@@ -8,9 +8,6 @@ using System.Security.Claims;
 
 namespace api;
 
-// ПОФИКСИТЬ [Authorize(Roles = "Administrator")]
-// ДОДЕЛАТЬ ОПИСАНИЕ ПАРАМЕТРОВ ДЛЯ СВАГГЕРА
-
 public class Program
 {
     public static void Main(string[] args)
@@ -21,30 +18,39 @@ public class Program
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
         builder.Services.AddScoped<UserService>();
+        builder.Services.AddScoped<PostService>();
         builder.Services.AddSingleton<JwtTokenService>();
 
-        builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.RequireHttpsMetadata = false;
-            options.SaveToken = true;
-            options.TokenValidationParameters = new TokenValidationParameters
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!)),
-                RoleClaimType = "Role"
-            };
-        });
+                options.RequireHttpsMetadata = true;
+                options.SaveToken = true;
+
+                options.TokenValidationParameters = new()
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!)),
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        context.Token = context.Request.Cookies["AccessToken"];
+
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("RequireAdministratorRole",
-                policy => policy.RequireRole("Administrator"));
+            options.AddPolicy("AdministratorPolicy",
+            policy => policy.RequireClaim("role", "Administrator"));
         });
 
         builder.Services.ConfigureApplicationCookie(options =>
@@ -59,6 +65,12 @@ public class Program
         builder.Services.AddSwaggerGen(c =>
         {
             c.EnableAnnotations();
+        });
+
+        builder.Services.AddHttpsRedirection(options =>
+        {
+            options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+            options.HttpsPort = 7245;
         });
 
         var app = builder.Build();

@@ -19,9 +19,9 @@ public class JwtTokenService
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim("id", user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim("Role", user.Role)
+            new Claim("role", user.Role)
         };
 
         var keyString = _configuration["Jwt:SecretKey"];

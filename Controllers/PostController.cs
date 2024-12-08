@@ -64,7 +64,7 @@ public class PostController : ControllerBase
     [HttpPost]
     [SwaggerOperation(Summary = "Создание нового поста", Description = "Создает новый пост с данными, предоставленными в запросе.")]
     [SwaggerResponse(201, "Пост успешно создан.")]
-    public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
+    public async Task<IActionResult> CreatePost([FromBody, SwaggerRequestBody(Description = "Данные нового поста")] PostDto postDto)
     {
         var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
         var newPost = new Post
@@ -90,7 +90,7 @@ public class PostController : ControllerBase
     [SwaggerOperation(Summary = "Обновление поста", Description = "Обновляет существующий пост.")]
     [SwaggerResponse(200, "Пост успешно обновлен.")]
     [SwaggerResponse(404, "Пост не найден.")]
-    public async Task<IActionResult> UpdatePost(Guid id, [FromBody] PostDto postDto)
+    public async Task<IActionResult> UpdatePost(Guid id, [FromBody, SwaggerRequestBody(Description = "Обновленные данные поста")] PostDto postDto)
     {
         var updatedPost = await _postService.UpdatePostAsync(id, new Post
         {

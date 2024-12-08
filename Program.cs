@@ -19,6 +19,7 @@ public class Program
 
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<PostService>();
+        builder.Services.AddScoped<CommentService>();
         builder.Services.AddSingleton<JwtTokenService>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

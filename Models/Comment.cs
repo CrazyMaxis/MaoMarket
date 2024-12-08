@@ -2,27 +2,28 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models;
-public class Post
+
+public class Comment
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
-    [ForeignKey("User")]
     public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
+
+    [ForeignKey(nameof(UserId))]
+    public User? User { get; set; } = null!;
 
     [Required]
-    [MaxLength(255)]
-    public string Title { get; set; } = string.Empty;
+    public Guid PostId { get; set; }
+
+    [ForeignKey(nameof(PostId))]
+    public Post? Post { get; set; } = null!;
 
     [Required]
+    [MaxLength(500)]
     public string Body { get; set; } = string.Empty;
-
-    [Required]
-    public List<string> Hashtags { get; set; } = new();
     public int Likes { get; set; } = 0;
     public int Dislikes { get; set; } = 0;
-
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

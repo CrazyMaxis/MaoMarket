@@ -9,7 +9,6 @@ namespace api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Administrator")]
 public class PostController : ControllerBase
 {
     private readonly PostService _postService;
@@ -29,7 +28,6 @@ public class PostController : ControllerBase
     /// <param name="searchTitle">Поисковая строка по названию поста.</param>
     /// <response code="200">Возвращает список постов.</response>
     [HttpGet]
-    [AllowAnonymous]
     [SwaggerOperation(Summary = "Получение списка постов", Description = "Получает список постов с пагинацией, сортировкой и фильтрацией.")]
     [SwaggerResponse(200, "Возвращает список постов.")]
     public async Task<IActionResult> GetPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? sortDirection = null, [FromQuery] List<string>? hashtags = null, [FromQuery] string? searchTitle = null)
@@ -45,14 +43,13 @@ public class PostController : ControllerBase
     /// <response code="200">Возвращает пост.</response>
     /// <response code="404">Пост не найден.</response>
     [HttpGet("{id}")]
-    [AllowAnonymous]
     [SwaggerOperation(Summary = "Получение поста по идентификатору", Description = "Получает пост по его идентификатору.")]
     [SwaggerResponse(200, "Возвращает пост.")]
     [SwaggerResponse(404, "Пост не найден.")]
     public async Task<IActionResult> GetPostById(Guid id)
     {
         var post = await _postService.GetPostByIdAsync(id);
-        if (post == null) return NotFound();
+        if (post == null) return NotFound("Поста с данным id не существует.");
         return Ok(post);
     }
 
@@ -62,6 +59,7 @@ public class PostController : ControllerBase
     /// <param name="postDto">Данные поста для создания.</param>
     /// <response code="201">Пост успешно создан.</response>
     [HttpPost]
+    [Authorize(Roles = "Administrator")]
     [SwaggerOperation(Summary = "Создание нового поста", Description = "Создает новый пост с данными, предоставленными в запросе.")]
     [SwaggerResponse(201, "Пост успешно создан.")]
     public async Task<IActionResult> CreatePost([FromBody, SwaggerRequestBody(Description = "Данные нового поста")] PostDto postDto)
@@ -87,6 +85,7 @@ public class PostController : ControllerBase
     /// <response code="200">Пост успешно обновлен.</response>
     /// <response code="404">Пост не найден.</response>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Administrator")]
     [SwaggerOperation(Summary = "Обновление поста", Description = "Обновляет существующий пост.")]
     [SwaggerResponse(200, "Пост успешно обновлен.")]
     [SwaggerResponse(404, "Пост не найден.")]
@@ -99,7 +98,7 @@ public class PostController : ControllerBase
             Hashtags = postDto.Hashtags
         });
 
-        if (updatedPost == null) return NotFound();
+        if (updatedPost == null) return NotFound("Поста с данным id не существует.");
         return Ok(updatedPost);
     }
 
@@ -110,13 +109,38 @@ public class PostController : ControllerBase
     /// <response code="204">Пост успешно удален.</response>
     /// <response code="404">Пост не найден.</response>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Administrator")]
     [SwaggerOperation(Summary = "Удаление поста", Description = "Удаляет пост по идентификатору.")]
     [SwaggerResponse(204, "Пост успешно удален.")]
     [SwaggerResponse(404, "Пост не найден.")]
     public async Task<IActionResult> DeletePost(Guid id)
     {
         var result = await _postService.DeletePostAsync(id);
-        if (!result) return NotFound();
+        if (!result) return NotFound("Поста с данным id не существует.");
         return NoContent();
+    }
+
+    /// <summary>
+    /// Добавляет реакцию на пост.
+    /// </summary>
+    /// <param name="id">Идентификатор поста для реакции.</param>
+    /// <param name="dto">Данные для реакции (Like или Dislike).</param>
+    /// <response code="200">Реакция успешно добавлена.</response>
+    /// <response code="404">Пост не найден.</response>
+    [HttpPost("{postId}/react")]
+    [Authorize]
+    [SwaggerOperation(Summary = "Реакция на пост", Description = "Добавляет лайк или дизлайк к посту.")]
+    [SwaggerResponse(200, "Реакция успешно добавлена.")]
+    [SwaggerResponse(404, "Пост не найден.")]
+    public async Task<IActionResult> ReactToPost(Guid postId, [FromBody, SwaggerRequestBody(Description = "Тип реакции Like или Dislike")] LikeDislikeDto dto)
+    {
+        var updatedPost = await _postService.AddLikeDislikeToPostAsync(postId, dto.Action);
+
+        if (updatedPost == null)
+        {
+            return NotFound("Поста с данным id не существует.");
+        }
+
+        return Ok(updatedPost);
     }
 }

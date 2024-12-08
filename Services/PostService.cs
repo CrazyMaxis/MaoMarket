@@ -73,4 +73,25 @@ public class PostService
         await _dbContext.SaveChangesAsync();
         return true;
     }
+
+    public async Task<Post> AddLikeDislikeToPostAsync(Guid postId, string action)
+    {
+        var post = await _dbContext.Posts.FindAsync(postId);
+        if (post == null)
+        {
+            throw new InvalidOperationException("Post not found.");
+        }
+
+        if (action == "Like")
+        {
+            post.Likes++;
+        }
+        else if (action == "Dislike")
+        {
+            post.Dislikes++;
+        }
+
+        await _dbContext.SaveChangesAsync();
+        return post;
+    }
 }

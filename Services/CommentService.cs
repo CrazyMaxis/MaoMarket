@@ -1,0 +1,76 @@
+using api.Data;
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Services;
+
+public class CommentService
+{
+    private readonly ApplicationDbContext _dbContext;
+
+    public CommentService(ApplicationDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task<IEnumerable<Comment>> GetCommentsByPostIdAsync(Guid postId)
+    {
+        return await _dbContext.Comments
+            .Where(c => c.PostId == postId)
+            .Include(c => c.User)
+            .ToListAsync();
+    }
+
+    public async Task<Comment?> GetCommentByIdAsync(Guid id)
+    {
+        return await _dbContext.Comments.FindAsync(id);
+    }
+
+    public async Task<Comment> CreateCommentAsync(Comment comment)
+    {
+        _dbContext.Comments.Add(comment);
+        await _dbContext.SaveChangesAsync();
+        return comment;
+    }
+
+    public async Task<Comment?> UpdateCommentAsync(Guid id, string newBody)
+    {
+        var comment = await _dbContext.Comments.FindAsync(id);
+        if (comment == null) return null;
+
+        comment.Body = newBody;
+        await _dbContext.SaveChangesAsync();
+        return comment;
+    }
+
+    public async Task<bool> DeleteCommentAsync(Guid id)
+    {
+        var comment = await _dbContext.Comments.FindAsync(id);
+        if (comment == null) return false;
+
+        _dbContext.Comments.Remove(comment);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Comment> AddLikeDislikeToCommentAsync(Guid commentId, string action)
+    {
+        var comment = await _dbContext.Comments.FindAsync(commentId);
+        if (comment == null)
+        {
+            throw new InvalidOperationException("Comment not found.");
+        }
+
+        if (action == "Like")
+        {
+            comment.Likes++;
+        }
+        else if (action == "Dislike")
+        {
+            comment.Dislikes++;
+        }
+
+        await _dbContext.SaveChangesAsync();
+        return comment;
+    }
+}

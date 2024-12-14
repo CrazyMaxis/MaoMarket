@@ -2,8 +2,6 @@ using api.Data;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace api.Services;
-
 public class UserService
 {
     private readonly ApplicationDbContext _context;
@@ -53,9 +51,63 @@ public class UserService
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteUserAsync(User user) 
+    public async Task DeleteUserAsync(User user)
     {
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task BlockUserAsync(Guid id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user != null)
+        {
+            user.IsBlocked = true;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task UnblockUserAsync(Guid id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user != null)
+        {
+            user.IsBlocked = false;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task RequestVerificationAsync(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.VerificationRequested = true;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task VerifyUserAsync(Guid userId, bool isVerified)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.VerificationRequested = false;
+            if (isVerified)
+            {
+                user.Role = "VerifiedUser";
+            }
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task ChangeUserRoleAsync(Guid userId, string newRole)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.Role = newRole;
+            await _context.SaveChangesAsync();
+        }
     }
 }

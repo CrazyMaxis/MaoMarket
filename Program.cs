@@ -54,7 +54,16 @@ public class Program
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy("AdministratorPolicy",
-            policy => policy.RequireClaim("role", "Administrator"));
+                policy => policy.RequireClaim("role", "Administrator"));
+
+            options.AddPolicy("ModeratorPolicy",
+                policy => policy.RequireClaim("role", "Moderator"));
+
+            options.AddPolicy("NewsEditorPolicy",
+                policy => policy.RequireClaim("role", "NewsEditor"));
+
+            options.AddPolicy("VerifiedUserPolicy",
+                policy => policy.RequireClaim("role", "VerifiedUser"));
         });
 
         builder.Services.ConfigureApplicationCookie(options =>

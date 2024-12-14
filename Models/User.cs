@@ -23,6 +23,8 @@ public class User
     [Required]
     [MaxLength(20)]
     public string Role { get; set; } = "User";
+    public bool IsBlocked { get; set; } = false; 
+    public bool VerificationRequested { get; set; } = false;
 
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

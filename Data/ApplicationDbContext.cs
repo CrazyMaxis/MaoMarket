@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Cat> Cats { get; set; } = null!;
     public DbSet<Breed> Breeds { get; set; } = null!;
     public DbSet<CatPhoto> CatPhotos { get; set; } = null!;
+    public DbSet<Advertisement> Advertisements { get; set; } = null!;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }

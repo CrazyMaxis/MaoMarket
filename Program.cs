@@ -21,6 +21,7 @@ public class Program
         builder.Services.AddScoped<CommentService>();
         builder.Services.AddScoped<BreedService>();
         builder.Services.AddScoped<CatService>();
+        builder.Services.AddScoped<AdvertisementService>();
         builder.Services.AddSingleton<JwtTokenService>();
         builder.Services.AddSingleton<MinioService>();
 

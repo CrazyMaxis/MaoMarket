@@ -44,7 +44,7 @@ public class BreedsController : ControllerBase
     [HttpPost]
     [SwaggerOperation(Summary = "Добавить новую породу.", Description = "Создает новую породу с данными, предоставленными в запросе.")]
     [SwaggerResponse(200, "Порода успешно добавлена.")]
-    public async Task<IActionResult> AddBreed([FromBody, SwaggerRequestBody(Description = "Название новой породы")] string name)
+    public async Task<IActionResult> AddBreed([FromForm, SwaggerRequestBody(Description = "Название новой породы")] string name)
     {
         await _breedService.AddBreedAsync(name);
 
@@ -62,7 +62,7 @@ public class BreedsController : ControllerBase
     [SwaggerOperation(Summary = "Обновить породу.", Description = "Обновляет существующую породу.")]
     [SwaggerResponse(200, "Порода успешно обновлена.")]
     [SwaggerResponse(404, "Порода не найдена.")]
-    public async Task<IActionResult> UpdateBreed(Guid id, [FromBody, SwaggerRequestBody(Description = "Название обновленной породы")] string name)
+    public async Task<IActionResult> UpdateBreed(Guid id, [FromForm, SwaggerRequestBody(Description = "Название обновленной породы")] string name)
     {
         var breed = await _breedService.UpdateBreedAsync(id, name);
         if (breed == null) return NotFound("Порода с данным id не существует.");

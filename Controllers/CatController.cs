@@ -1,6 +1,4 @@
 using api.Dto;
-using api.Models;
-using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -58,7 +56,7 @@ namespace api.Controllers
         [Authorize]
         [SwaggerOperation(Summary = "Добавление нового кота", Description = "Добавляет нового кота.")]
         [SwaggerResponse(201, "Кот успешно добавлен.")]
-        public async Task<IActionResult> AddCat([FromForm] CreateCatDto createCatDto)
+        public async Task<IActionResult> AddCat([FromForm, SwaggerRequestBody(Description = "Данные кота")] CreateCatDto createCatDto)
         {
             var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
             await _catService.AddCatAsync(createCatDto, userId);
@@ -77,7 +75,7 @@ namespace api.Controllers
         [SwaggerOperation(Summary = "Обновление информации о коте", Description = "Обновляет данные существующего кота.")]
         [SwaggerResponse(200, "Информация о коте успешно обновлена.")]
         [SwaggerResponse(404, "Кот не найден.")]
-        public async Task<IActionResult> EditCat(Guid id, [FromForm] UpdateCatDto updateCatDto)
+        public async Task<IActionResult> EditCat(Guid id, [FromForm, SwaggerRequestBody(Description = "Обновленные данные кота")] UpdateCatDto updateCatDto)
         {
             var result = await _catService.EditCatAsync(id, updateCatDto);
             if (result == null) return NotFound("Кота с данным id не существует.");

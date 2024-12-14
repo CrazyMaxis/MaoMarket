@@ -26,6 +26,12 @@ public class CatDetailsDto
     public string Gender { get; set; } = string.Empty;
 
     /// <summary>
+    /// Порода кота.
+    /// </summary>
+    [SwaggerSchema(Description = "Порода кота")]
+    public string Breed { get; set; } = string.Empty;
+
+    /// <summary>
     /// Дата рождения кота.
     /// </summary>
     [SwaggerSchema(Description = "Дата рождения кота")]

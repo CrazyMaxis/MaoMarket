@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
     [SwaggerOperation(Summary = "Регистрация нового пользователя", Description = "Создает нового пользователя с указанными данными.")]
     [SwaggerResponse(200, "Регистрация прошла успешно.")]
     [SwaggerResponse(400, "Пользователь с таким email уже существует.")]
-    public async Task<IActionResult> Register([FromBody, SwaggerRequestBody(Description = "Данные нового пользователя")] RegisterDto model)
+    public async Task<IActionResult> Register([FromForm, SwaggerRequestBody(Description = "Данные нового пользователя")] RegisterDto model)
     {
         var existingUser = await _userService.GetByEmailAsync(model.Email);
         if (existingUser != null)

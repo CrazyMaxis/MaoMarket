@@ -27,6 +27,7 @@ public class CatService
             Id = cat.Id,
             Name = cat.Name,
             Gender = cat.Gender,
+            Breed = cat.Breed.Name,
             BirthDate = cat.BirthDate,
             Description = cat.Description,
             Photos = cat.Photos.Select(p => new CatPhotoDto

@@ -9,6 +9,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
     public DbSet<Post> Posts { get; set; } = null!;
     public DbSet<Comment> Comments { get; set; } = null!;
+    public DbSet<Cat> Cats { get; set; } = null!;
+    public DbSet<Breed> Breeds { get; set; } = null!;
+    public DbSet<CatPhoto> CatPhotos { get; set; } = null!;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }

@@ -1,4 +1,5 @@
 using api.Data;
+using api.Dto;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +14,27 @@ public class CommentService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<Comment>> GetCommentsByPostIdAsync(Guid postId)
+    public async Task<IEnumerable<CommentResponseDto>> GetCommentsByPostIdAsync(Guid postId)
     {
         return await _dbContext.Comments
             .Where(c => c.PostId == postId)
             .Include(c => c.User)
+            .Select(c => new CommentResponseDto
+            {
+                Id = c.Id,
+                Body = c.Body,
+                Likes = c.Likes,
+                Dislikes = c.Dislikes,
+                CreatedAt = c.CreatedAt,
+                User = new UserNameDto
+                {
+                    Id = c.User!.Id,
+                    Name = c.User.Name
+                }
+            })
             .ToListAsync();
     }
+
 
     public async Task<Comment?> GetCommentByIdAsync(Guid id)
     {

@@ -31,6 +31,7 @@ public class CommentController : ControllerBase
     public async Task<IActionResult> GetComments(Guid postId)
     {
         var comments = await _commentService.GetCommentsByPostIdAsync(postId);
+        
         return Ok(comments);
     }
 
@@ -38,10 +39,10 @@ public class CommentController : ControllerBase
     /// Создание нового комментария.
     /// </summary>
     /// <param name="commentDto">Данные нового комментария.</param>
-    /// <response code="201">Комментарий успешно создан.</response>
+    /// <response code="200">Комментарий успешно создан.</response>
     [HttpPost]
     [SwaggerOperation(Summary = "Создание комментария", Description = "Создает новый комментарий для указанного поста.")]
-    [SwaggerResponse(201, "Комментарий успешно создан.")]
+    [SwaggerResponse(200, "Комментарий успешно создан.")]
     public async Task<IActionResult> CreateComment([FromBody, SwaggerRequestBody(Description = "Текст нового комментария")] CommentDto commentDto)
     {
         var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
@@ -53,8 +54,9 @@ public class CommentController : ControllerBase
             Body = commentDto.Body
         };
 
-        var createdComment = await _commentService.CreateCommentAsync(comment);
-        return CreatedAtAction(nameof(GetComments), new { postId = createdComment.PostId }, createdComment);
+        await _commentService.CreateCommentAsync(comment);
+
+        return Ok("Комментарий успешно создан.");
     }
 
     /// <summary>
@@ -81,21 +83,21 @@ public class CommentController : ControllerBase
         if (comment.UserId != userId && !User.IsInRole("Administrator"))
             return Forbid("У вас нет прав удалить данный комментарий.");
 
-        var updatedComment = await _commentService.UpdateCommentAsync(id, newBody);
+        await _commentService.UpdateCommentAsync(id, newBody);
 
-        return Ok(updatedComment);
+        return Ok("Комментарий успешно обновлен.");
     }
 
     /// <summary>
     /// Удаление комментария.
     /// </summary>
     /// <param name="id">Идентификатор комментария.</param>
-    /// <response code="204">Комментарий успешно удален.</response>
+    /// <response code="200">Комментарий успешно удален.</response>
     /// <response code="403">Доступ запрещен.</response>
     /// <response code="404">Комментарий не найден.</response>
     [HttpDelete("{id}")]
     [SwaggerOperation(Summary = "Удаление комментария", Description = "Удаляет существующий комментарий.")]
-    [SwaggerResponse(204, "Комментарий успешно удален.")]
+    [SwaggerResponse(200, "Комментарий успешно удален.")]
     [SwaggerResponse(403, "Доступ запрещен.")]
     [SwaggerResponse(404, "Комментарий не найден.")]
     public async Task<IActionResult> DeleteComment(Guid id)
@@ -110,7 +112,8 @@ public class CommentController : ControllerBase
             return Forbid("У вас нет прав удалить данный комментарий.");
 
         await _commentService.DeleteCommentAsync(id);
-        return NoContent();
+
+        return Ok("Комментарий успешно удален.");
     }
 
     /// <summary>
@@ -128,11 +131,8 @@ public class CommentController : ControllerBase
     {
         var updatedComment = await _commentService.AddLikeDislikeToCommentAsync(commentId, dto.Action);
 
-        if (updatedComment == null)
-        {
-            return NotFound("Комментария с данным id не существует.");
-        }
+        if (updatedComment == null) return NotFound("Комментария с данным id не существует.");
 
-        return Ok(updatedComment);
+        return Ok("Реакция успешно добавлена.");
     }
 }

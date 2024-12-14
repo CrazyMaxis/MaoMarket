@@ -14,7 +14,7 @@ public class PostService
 
     public async Task<IEnumerable<Post>> GetPostsAsync(int page, int pageSize, string? sortDirection, List<string>? hashtags, string? searchTitle)
     {
-        var query = _dbContext.Posts.Include(p => p.User).AsQueryable();
+        var query = _dbContext.Posts.AsQueryable();
 
         if (hashtags != null && hashtags.Count > 0)
         {
@@ -39,11 +39,11 @@ public class PostService
             .ToListAsync();
     }
 
+
     public async Task<Post?> GetPostByIdAsync(Guid id)
     {
-        return await _dbContext.Posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
+        return await _dbContext.Posts.FirstOrDefaultAsync(p => p.Id == id);
     }
-
 
     public async Task<Post> CreatePostAsync(Post post)
     {

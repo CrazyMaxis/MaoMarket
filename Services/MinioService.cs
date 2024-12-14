@@ -49,4 +49,12 @@ public class MinioService
     {
         return $"{_minioClient.Config.Endpoint}/{_bucketName}/{objectName}";
     }
+
+    public async Task DeleteFileAsync(string objectName)
+    {
+        await EnsureBucketExistsAsync();
+        await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+            .WithBucket(_bucketName)
+            .WithObject(objectName));
+    }
 }

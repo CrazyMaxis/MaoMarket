@@ -51,6 +51,12 @@ public class UserService
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateUserAsync(User user)
+    {
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task DeleteUserAsync(User user)
     {
         _context.Users.Remove(user);

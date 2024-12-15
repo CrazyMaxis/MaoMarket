@@ -12,11 +12,15 @@ public class AuthController : ControllerBase
 {
     private readonly UserService _userService;
     private readonly JwtTokenService _tokenService;
+    private readonly VerificationCodeService _codeService;
+    private readonly EmailService _emailService;
 
-    public AuthController(UserService userService, JwtTokenService tokenService)
+    public AuthController(UserService userService, JwtTokenService tokenService, VerificationCodeService codeService, EmailService emailService)
     {
         _userService = userService;
         _tokenService = tokenService;
+         _codeService = codeService;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -50,7 +54,74 @@ public class AuthController : ControllerBase
 
         await _userService.CreateUserAsync(newUser);
 
-        return Ok("Регистрация прошла успешно.");
+        var verificationCode = new VerificationCode
+        {
+            UserId = newUser.Id,
+            Code = new Random().Next(100000, 999999).ToString(),
+            ExpiryTime = DateTime.UtcNow.AddMinutes(10)
+        };
+
+        await _codeService.CreateVerificationCodeAsync(verificationCode);
+
+        await _emailService.SendEmailAsync(newUser.Email, "Ваш код подтверждения", $"Ваш код подтверждения: {verificationCode.Code}");
+
+        var userResponse = new UserResponseDto
+        {
+            Id = newUser.Id,
+            Name = newUser.Name,
+            Email = newUser.Email,
+            Role = newUser.Role,
+            IsBlocked = newUser.IsBlocked,
+            VerificationRequested = newUser.VerificationRequested
+        };
+
+        return Ok(new { User = userResponse });
+    }
+
+    /// <summary>
+    /// Подтверждение email пользователя с использованием кода верификации.
+    /// </summary>
+    /// <remarks>
+    /// Пользователь должен ввести код, который был отправлен на его email во время регистрации.
+    /// Если код правильный и не истек, email будет подтвержден, и пользователю будут выданы токены доступа и обновления.
+    /// </remarks>
+    /// <param name="model">Данные для верификации (userId и код).</param>
+    /// <response code="200">Email успешно подтвержден, токены выданы.</response>
+    /// <response code="400">Неверный или истекший код верификации.</response>
+    /// <response code="404">Пользователь не найден.</response>
+    [HttpPost("verify")]
+    [SwaggerOperation(Summary = "Подтверждение email пользователя", Description = "Проверяет код верификации и подтверждает email пользователя.")]
+    [SwaggerResponse(200, "Email успешно подтвержден, токены выданы.")]
+    [SwaggerResponse(400, "Неверный или истекший код верификации.")]
+    [SwaggerResponse(404, "Пользователь не найден.")]
+    public async Task<IActionResult> Verify([FromBody] VerifyDto model)
+    {
+        var verificationCode = await _codeService.GetVerificationCodeAsync(model.UserId, model.Code);
+        if (verificationCode == null || verificationCode.ExpiryTime < DateTime.UtcNow)
+            return BadRequest("Неверный или истекший код.");
+
+        await _codeService.DeleteVerificationCodeAsync(verificationCode);
+
+        var user = await _userService.GetByIdAsync(model.UserId);
+        if (user == null) return NotFound("Пользователь не найден.");
+
+        user.IsEmailVerified = true;
+        await _userService.UpdateUserAsync(user);
+
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var refreshToken = new RefreshToken
+        {
+            Token = _tokenService.GenerateRefreshToken(),
+            ExpiryTime = DateTime.UtcNow.AddDays(7),
+            UserId = user.Id
+        };
+
+        await _userService.AddRefreshTokenAsync(refreshToken);
+
+        Response.Cookies.Append("AccessToken", accessToken, new CookieOptions { HttpOnly = true, Secure = true });
+        Response.Cookies.Append("RefreshToken", refreshToken.Token, new CookieOptions { HttpOnly = true, Secure = true });
+
+        return Ok("Email верифицирован");
     }
 
     /// <summary>
@@ -72,6 +143,9 @@ public class AuthController : ControllerBase
         if (user == null || !_userService.VerifyPassword(user, model.Password))
             return Unauthorized("Неверный email или пароль.");
 
+        if (!user.IsEmailVerified)
+            return Forbid("Ваш email не подтвержден. Пожалуйста, проверьте почту.");
+
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = new RefreshToken
         {
@@ -85,7 +159,17 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("AccessToken", accessToken, new CookieOptions { HttpOnly = true, Secure = true });
         Response.Cookies.Append("RefreshToken", refreshToken.Token, new CookieOptions { HttpOnly = true, Secure = true });
 
-        return Ok(new { AccessToken = accessToken });
+        var userResponse = new UserResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user.Role,
+            IsBlocked = user.IsBlocked,
+            VerificationRequested = user.VerificationRequested
+        };
+
+        return Ok(new { User = userResponse });
     }
 
     /// <summary>

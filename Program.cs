@@ -17,6 +17,7 @@ public class Program
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
         builder.Services.AddScoped<UserService>();
+        builder.Services.AddScoped<VerificationCodeService>();
         builder.Services.AddScoped<PostService>();
         builder.Services.AddScoped<CommentService>();
         builder.Services.AddScoped<BreedService>();
@@ -24,6 +25,7 @@ public class Program
         builder.Services.AddScoped<AdvertisementService>();
         builder.Services.AddSingleton<JwtTokenService>();
         builder.Services.AddSingleton<MinioService>();
+        builder.Services.AddSingleton<EmailService>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>

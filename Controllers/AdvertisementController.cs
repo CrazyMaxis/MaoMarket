@@ -23,7 +23,7 @@ public class AdvertisementController : ControllerBase
     [Authorize]
     [SwaggerOperation(Summary = "Добавление нового объявления", Description = "Добавляет новое объявление.")]
     [SwaggerResponse(201, "Объявление успешно добавлено.")]
-    public async Task<IActionResult> AddAdvertisement([FromForm, SwaggerRequestBody(Description = "Данные нового объявления")] CreateAdvertisementDto createAdDto)
+    public async Task<IActionResult> AddAdvertisement([FromBody, SwaggerRequestBody(Description = "Данные нового объявления")] CreateAdvertisementDto createAdDto)
     {
         var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
         await _adService.AddAdvertisementAsync(createAdDto, userId);
@@ -77,20 +77,31 @@ public class AdvertisementController : ControllerBase
     /// </summary>
     /// <param name="page">Номер страницы для пагинации.</param>
     /// <param name="pageSize">Размер страницы.</param>
-    /// <param name="sortOrder">Параметр сортировки (по умолчанию — "date").</param>
+    /// <param name="sortBy">Поле для сортировки (например, "createdAt", "birthDate").</param>
+    /// <param name="sortOrder">Порядок сортировки (Asc или Desc).</param>
     /// <param name="breedId">Идентификатор породы для фильтрации.</param>
-    /// <param name="searchQuery">Запрос для поиска.</param>
+    /// <param name="searchName">Запрос для поиска.</param>
     /// <param name="gender">Пол кота для фильтрации.</param>
+    /// <param name="isCattery">Фильтр: является ли кот из питомника.</param>
     /// <response code="200">Объявления успешно получены.</response>
     [HttpGet]
     [AllowAnonymous]
     [SwaggerOperation(Summary = "Получение объявлений с фильтрацией и сортировкой", Description = "Возвращает список объявлений с фильтрацией и сортировкой.")]
     [SwaggerResponse(200, "Объявления успешно получены.")]
-    public async Task<IActionResult> GetAdvertisements([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? sortOrder = "date", [FromQuery] Guid? breedId = null, [FromQuery] string? searchQuery = null, [FromQuery] string? gender = null)
+    public async Task<IActionResult> GetAdvertisements(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10, 
+        [FromQuery] string sortBy = "createdAt", 
+        [FromQuery] string sortOrder = "Asc", 
+        [FromQuery] Guid? breedId = null, 
+        [FromQuery] string? searchName = null, 
+        [FromQuery] string? gender = null, 
+        [FromQuery] bool? isCattery = null)
     {
-        var ads = await _adService.GetAdvertisementsAsync(page, pageSize, sortOrder, breedId, searchQuery, gender);
+        var ads = await _adService.GetAdvertisementsAsync(page, pageSize, sortBy, sortOrder, breedId, searchName, gender, isCattery);
         return Ok(ads);
     }
+
 
     /// <summary>
     /// Получение объявления по ID.

@@ -43,6 +43,7 @@ public class CatService
     {
         var cats = await _dbContext.Cats
             .Include(c => c.Photos)
+            .Include(c => c.Breed)
             .Where(c => c.UserId == userId)
             .ToListAsync();
 
@@ -51,6 +52,11 @@ public class CatService
             Id = cat.Id,
             Name = cat.Name,
             Gender = cat.Gender,
+            Breed = new Breed
+                {
+                    Id = cat.Breed.Id,
+                    Name = cat.Breed.Name
+                },
             PhotoUrl = cat.Photos.FirstOrDefault()?.Image != null
                 ? _minioService.GetFileUrl(cat.Photos.First().Image)
                 : string.Empty

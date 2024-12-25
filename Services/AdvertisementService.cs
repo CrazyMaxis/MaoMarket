@@ -56,7 +56,15 @@ public class AdvertisementService
         return true;
     }
 
-    public async Task<List<AdvertisementResponseDto>> GetAdvertisementsAsync(int page, int pageSize, string? sortOrder, Guid? breedId, string? searchQuery, string? gender)
+    public async Task<List<AdvertisementResponseDto>> GetAdvertisementsAsync(
+        int page, 
+        int pageSize, 
+        string sortBy, 
+        string sortOrder, 
+        Guid? breedId, 
+        string? searchName, 
+        string? gender, 
+        bool? isCattery)
     {
         var query = _dbContext.Advertisements
             .Include(ad => ad.Cat)
@@ -66,24 +74,34 @@ public class AdvertisementService
 
         if (breedId.HasValue)
         {
-            query = query.Where(ad => ad.Cat.BreedId == breedId);
+            query = query.Where(ad => ad.Cat.BreedId == breedId.Value);
         }
 
-        if (!string.IsNullOrEmpty(searchQuery))
+        if (!string.IsNullOrEmpty(searchName))
         {
-            query = query.Where(ad => ad.Cat.Name.Contains(searchQuery));
+            var lowerSearchName = searchName.ToLower();
+            query = query.Where(ad => EF.Functions.Like(ad.Cat.Name.ToLower(), $"%{lowerSearchName}%"));
         }
 
-        if (!string.IsNullOrEmpty(gender)) 
-        { 
-            query = query.Where(ad => ad.Cat.Gender == gender); 
-        }
-
-        query = sortOrder switch
+        if (!string.IsNullOrEmpty(gender))
         {
-            "date" => query.OrderBy(ad => ad.CreatedAt),
-            "age" => query.OrderBy(ad => ad.Cat.BirthDate),
-            _ => query.OrderBy(ad => ad.CreatedAt)
+            var lowerGender = gender.ToLower();
+            query = query.Where(ad => ad.Cat.Gender.ToLower() == lowerGender);
+        }
+
+        if (isCattery.HasValue)
+        {
+            query = query.Where(ad => ad.Cat.IsCattery == isCattery.Value);
+        }
+
+        query = sortBy.ToLower() switch
+        {
+            "birthdate" => sortOrder.ToLower() == "asc"
+                ? query.OrderBy(ad => ad.Cat.BirthDate)
+                : query.OrderByDescending(ad => ad.Cat.BirthDate),
+            _ => sortOrder.ToLower() == "asc"
+                ? query.OrderBy(ad => ad.CreatedAt)
+                : query.OrderByDescending(ad => ad.CreatedAt)
         };
 
         var advertisements = await query
@@ -94,16 +112,20 @@ public class AdvertisementService
                 Id = ad.Id,
                 Name = ad.Cat.Name,
                 Breed = ad.Cat.Breed.Name,
+                IsCattery = ad.Cat.IsCattery,
                 Gender = ad.Cat.Gender,
                 Price = ad.Price,
                 BirthDate = ad.Cat.BirthDate,
-                PhotoUrl = ad.Cat.Photos.Any() ? _minioService.GetFileUrl(ad.Cat.Photos.First().Image) : string.Empty,
+                PhotoUrl = ad.Cat.Photos.Any() 
+                    ? _minioService.GetFileUrl(ad.Cat.Photos.First().Image) 
+                    : string.Empty,
                 CreatedAt = ad.CreatedAt
             })
             .ToListAsync();
 
         return advertisements;
     }
+
 
     public async Task<AdvertisementDetailsDto?> GetAdvertisementByIdAsync(Guid id)
     {

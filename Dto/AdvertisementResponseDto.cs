@@ -26,6 +26,12 @@ public class AdvertisementResponseDto
     public string Breed { get; set; } = string.Empty;
 
     /// <summary>
+    /// Из питомника.
+    /// </summary>
+    [SwaggerSchema(Description = "Из питомника")]
+    public bool IsCattery { get; set; } = false;
+
+    /// <summary>
     /// Пол животного, размещенного в рекламе.
     /// </summary>
     [SwaggerSchema(Description = "Пол животного (Male/Female)")]

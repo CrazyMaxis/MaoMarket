@@ -41,7 +41,6 @@ public class CreateCatDto
     /// <summary>
     /// Описание кота.
     /// </summary>
-    [MaxLength(500, ErrorMessage = "Описание не может превышать 500 символов.")]
     [SwaggerSchema(Description = "Описание кота")]
     public string Description { get; set; } = string.Empty;
 
@@ -56,6 +55,12 @@ public class CreateCatDto
     /// </summary>
     [SwaggerSchema(Description = "ID матери кота, если указана")]
     public Guid? MotherId { get; set; }
+
+    /// <summary>
+    /// Из питомника.
+    /// </summary>
+    [SwaggerSchema(Description = "Из питомника")]
+    public bool IsCattery { get; set; } = false;
 
     /// <summary>
     /// Фотографии кота (массив файлов).

@@ -1,3 +1,4 @@
+using api.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace api.Dto;
@@ -5,7 +6,7 @@ namespace api.Dto;
 /// <summary>
 /// DTO для кота, который принадлежит пользователю.
 /// </summary>
-public class UserCatDto
+public class ShortCatDto
 {
     /// <summary>
     /// Идентификатор кота.
@@ -24,6 +25,12 @@ public class UserCatDto
     /// </summary>
     [SwaggerSchema(Description = "Пол кота (Male/Female)")]
     public string Gender { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Порода кота.
+    /// </summary>
+    [SwaggerSchema(Description = "Порода кота")]
+    public Breed Breed { get; set; } = null!;
 
     /// <summary>
     /// Ссылка на фотографию кота.

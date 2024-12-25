@@ -34,6 +34,21 @@ namespace api.Controllers
         }
 
         /// <summary>
+        /// Получает список котов из питомника с фильтрацией, поиском и пагинацией.
+        /// </summary>
+        /// <param name="filter">Фильтры для поиска и сортировки.</param>
+        /// <response code="200">Возвращает список котов питомника.</response>
+        [HttpGet("cattery")]
+        [SwaggerOperation(Summary = "Получение котов питомника", Description = "Получает котов питомника с фильтрацией, поиском и пагинацией.")]
+        [SwaggerResponse(200, "Возвращает список котов питомника.")]
+        public async Task<IActionResult> GetCatteryCats([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] Guid? breedId = null, [FromQuery] string? searchName = null, [FromQuery] string? gender = null)
+        {
+            var result = await _catService.GetCatteryCatsAsync(page, pageSize, breedId, searchName, gender);
+            return Ok(result);
+        }
+
+
+        /// <summary>
         /// Получает список котов по идентификатору пользователя.
         /// </summary>
         /// <param name="userId">Идентификатор пользователя.</param>

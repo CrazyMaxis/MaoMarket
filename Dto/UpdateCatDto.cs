@@ -21,6 +21,12 @@ public class UpdateCatDto
     public List<Guid> PhotosToDelete { get; set; } = new();
 
     /// <summary>
+    /// Из питомника.
+    /// </summary>
+    [SwaggerSchema(Description = "Из питомника")]
+    public bool IsCattery { get; set; }
+
+    /// <summary>
     /// Новый список фотографий кота для загрузки.
     /// </summary>
     [SwaggerSchema(Description = "Новый список фотографий кота для загрузки")]

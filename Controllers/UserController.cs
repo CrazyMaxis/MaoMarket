@@ -47,7 +47,7 @@ public class UserController : ControllerBase
     /// <response code="200">Список пользователей успешно получен.</response>
     /// <response code="403">Нет прав для выполнения этой операции.</response>
     [HttpGet("verification-requests")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Administrator, Moderator")]
     [SwaggerOperation(Summary = "Получение пользователей с заявками на верификацию", Description = "Возвращает пользователей, которые отправили заявку на верификацию, с поддержкой пагинации и поиска по имени.")]
     public async Task<IActionResult> GetVerificationRequests(
         [FromQuery] string? searchName,
@@ -144,13 +144,19 @@ public class UserController : ControllerBase
     /// <response code="403">Нет прав для выполнения этой операции.</response>
     /// <response code="404">Пользователь с указанным ID не найден.</response>
     [HttpPost("{id}/verify")]
-    [Authorize(Roles = "Moderator")]
+    [Authorize(Roles = "Administrator, Moderator")]
     [SwaggerOperation(Summary = "Верификация пользователя", Description = "Модератор может верифицировать или отклонить пользователя, изменив его роль на VerifiedUser или User.")]
-    public async Task<IActionResult> VerifyUser(Guid id, [FromQuery] bool isVerified)
+    public async Task<IActionResult> VerifyUser(Guid id, [FromBody] VerifyUserRequestDto request)
     {
-        await _userService.VerifyUserAsync(id, isVerified);
-        return Ok(isVerified ? "Пользователь успешно верифицирован." : "Запрос на верификацию отклонен.");
+        if (request == null)
+            return BadRequest("Тело запроса не должно быть пустым.");
+
+        await _userService.VerifyUserAsync(id, request.IsVerified);
+        return Ok(request.IsVerified 
+            ? "Пользователь успешно верифицирован." 
+            : "Запрос на верификацию отклонен.");
     }
+
 
     /// <summary>
     /// Изменение роли пользователя администратором.

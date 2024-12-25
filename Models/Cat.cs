@@ -35,6 +35,7 @@ public class Cat
 
     public Guid? FatherId { get; set; }
     public Guid? MotherId { get; set; }
+    public bool IsCattery { get; set; } = false;
 
     [JsonIgnore]
     public List<CatPhoto> Photos { get; set; } = new();

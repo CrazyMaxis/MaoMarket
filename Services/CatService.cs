@@ -39,14 +39,14 @@ public class CatService
         };
     }
 
-    public async Task<List<UserCatDto>> GetCatsByUserIdAsync(Guid userId)
+    public async Task<List<ShortCatDto>> GetCatsByUserIdAsync(Guid userId)
     {
         var cats = await _dbContext.Cats
             .Include(c => c.Photos)
             .Where(c => c.UserId == userId)
             .ToListAsync();
 
-        return cats.Select(cat => new UserCatDto
+        return cats.Select(cat => new ShortCatDto
         {
             Id = cat.Id,
             Name = cat.Name,
@@ -55,6 +55,54 @@ public class CatService
                 ? _minioService.GetFileUrl(cat.Photos.First().Image)
                 : string.Empty
         }).ToList();
+    }
+
+    public async Task<PaginatedResultDto<ShortCatDto>> GetCatteryCatsAsync(int page, int pageSize, Guid? breedId, string? searchName, string? gender)
+    {
+        var query = _dbContext.Cats.Where(c => c.IsCattery);
+
+        if (!string.IsNullOrEmpty(searchName))
+        {
+            var lowerSearchName = searchName.ToLower();
+            query = query.Where(c => EF.Functions.Like(c.Name.ToLower(), $"%{lowerSearchName}%"));
+        }
+
+        if (!string.IsNullOrEmpty(gender))
+        {
+            var lowerGender = gender.ToLower();
+            query = query.Where(c => c.Gender.ToLower() == lowerGender);
+        }
+
+        if (breedId.HasValue)
+        {
+            query = query.Where(c => c.BreedId == breedId.Value);
+        }
+
+        var totalItems = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(cat => new ShortCatDto
+            {
+                Id = cat.Id,
+                Name = cat.Name,
+                Gender = cat.Gender,
+                Breed = new Breed
+                {
+                    Id = cat.Breed.Id,
+                    Name = cat.Breed.Name
+                },
+                PhotoUrl = cat.Photos.Any()
+                    ? _minioService.GetFileUrl(cat.Photos.First().Image)
+                    : string.Empty
+            })
+            .ToListAsync();
+
+        return new PaginatedResultDto<ShortCatDto>
+        {
+            Items = items,
+            TotalCount = totalItems,
+        };
     }
 
     public async Task AddCatAsync(CreateCatDto createCatDto, Guid userId)
@@ -68,6 +116,7 @@ public class CatService
             BirthDate = createCatDto.BirthDate.ToUniversalTime(),
             BreedId = createCatDto.BreedId,
             Description = createCatDto.Description,
+            IsCattery = createCatDto.IsCattery,
             FatherId = createCatDto.FatherId,
             MotherId = createCatDto.MotherId,
             UserId = userId
@@ -101,6 +150,7 @@ public class CatService
         if (cat == null) return null;
 
         cat.Description = updateCatDto.Description;
+        cat.IsCattery = updateCatDto.IsCattery;
 
         foreach (var photoId in updateCatDto.PhotosToDelete)
         {

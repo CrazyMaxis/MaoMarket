@@ -135,7 +135,7 @@ public class AdvertisementService
                     Url = _minioService.GetFileUrl(p.Image)
                 }).ToList()
             },
-            User = new UserDetailsDto
+            User = new UserNameDto
             {
                 Id = advertisement.User.Id,
                 Name = advertisement.User.Name

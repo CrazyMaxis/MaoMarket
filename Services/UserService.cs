@@ -1,4 +1,5 @@
 using api.Data;
+using api.Dto;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,71 @@ public class UserService
     {
         _context = context;
     }
+
+    public async Task<PaginatedResultDto<User>> GetUsersAsync(
+        int pageNumber, 
+        int pageSize, 
+        string? role = null, 
+        bool? isBlocked = null, 
+        string? searchName = null)
+    {
+        var query = _context.Users.AsQueryable();
+
+        if (!string.IsNullOrEmpty(role))
+        {
+            query = query.Where(u => u.Role == role);
+        }
+
+        if (isBlocked.HasValue)
+        {
+            query = query.Where(u => u.IsBlocked == isBlocked.Value);
+        }
+
+        if (!string.IsNullOrEmpty(searchName))
+        {
+            var lowerSearchName = searchName.ToLower();
+            query = query.Where(u => EF.Functions.Like(u.Name.ToLower(), $"%{lowerSearchName}%"));
+        }
+
+        var totalUsers = await query.CountAsync();
+
+        var users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PaginatedResultDto<User>
+        {
+            Items = users,
+            TotalCount = totalUsers
+        };
+    }
+
+    public async Task<PaginatedResultDto<User>> GetVerificationRequestsAsync(string? searchName, int page, int pageSize)
+    {
+        var query = _context.Users
+            .Where(u => u.VerificationRequested);
+
+        if (!string.IsNullOrEmpty(searchName))
+        {
+            var lowerSearchName = searchName.ToLower();
+            query = query.Where(u => EF.Functions.Like(u.Name.ToLower(), $"%{lowerSearchName}%"));
+        }
+
+        var totalItems = await query.CountAsync();
+        var users = await query
+            .OrderBy(u => u.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PaginatedResultDto<User>
+        {
+            Items = users,
+            TotalCount = totalItems
+        };
+    }
+
 
     public async Task<User?> GetByEmailAsync(string email)
     {
@@ -56,6 +122,24 @@ public class UserService
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
     }
+
+    public async Task UpdateUserProfileAsync(Guid userId, UpdateProfileDto dto)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return;
+
+        if (!string.IsNullOrEmpty(dto.Name))
+            user.Name = dto.Name;
+
+        if (!string.IsNullOrEmpty(dto.PhoneNumber))
+            user.PhoneNumber = dto.PhoneNumber;
+
+        if (!string.IsNullOrEmpty(dto.TelegramUsername))
+            user.TelegramUsername = dto.TelegramUsername;
+
+        await _context.SaveChangesAsync();
+    }
+
 
     public async Task DeleteUserAsync(User user)
     {

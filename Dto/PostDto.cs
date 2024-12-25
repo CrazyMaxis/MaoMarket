@@ -28,4 +28,10 @@ public class PostDto
     /// </summary>
     [SwaggerSchema(Description = "Список хэштегов, разделенных запятыми.")]
     public List<string> Hashtags { get; set; } = new();
+
+    /// <summary>
+    /// Изображение для поста.
+    /// </summary>
+    [SwaggerSchema(Description = "Изображение для поста")]
+    public IFormFile? Image { get; set; }
 }

@@ -23,9 +23,18 @@ public class User
     [Required]
     [MaxLength(20)]
     public string Role { get; set; } = "User";
+
     public bool IsBlocked { get; set; } = false; 
     public bool VerificationRequested { get; set; } = false;
     public bool IsEmailVerified { get; set; } = false;
 
+    [Phone]
+    [MaxLength(15)]
+    public string? PhoneNumber { get; set; }
+
+    [MaxLength(50)]
+    public string? TelegramUsername { get; set; }
+
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
+

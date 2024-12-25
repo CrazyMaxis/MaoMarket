@@ -65,15 +65,7 @@ public class PostController : ControllerBase
     [SwaggerResponse(200, "Пост успешно создан.")]
     public async Task<IActionResult> CreatePost([FromForm, SwaggerRequestBody(Description = "Данные нового поста")] PostDto postDto)
     {
-        var newPost = new Post
-        {
-            Title = postDto.Title,
-            Body = postDto.Body,
-            Hashtags = postDto.Hashtags
-        };
-
-
-        await _postService.CreatePostAsync(newPost);
+        await _postService.CreatePostAsync(postDto);
         
         return Ok("Пост успешно создан.");
     }
@@ -92,12 +84,7 @@ public class PostController : ControllerBase
     [SwaggerResponse(404, "Пост не найден.")]
     public async Task<IActionResult> UpdatePost(Guid id, [FromForm, SwaggerRequestBody(Description = "Обновленные данные поста")] PostDto postDto)
     {
-        var updatedPost = await _postService.UpdatePostAsync(id, new Post
-        {
-            Title = postDto.Title,
-            Body = postDto.Body,
-            Hashtags = postDto.Hashtags
-        });
+        var updatedPost = await _postService.UpdatePostAsync(id, postDto);
 
         if (updatedPost == null) return NotFound("Поста с данным id не существует.");
 

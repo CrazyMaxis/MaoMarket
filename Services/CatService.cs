@@ -18,6 +18,7 @@ public class CatService
     {
         var cat = await _dbContext.Cats
             .Include(c => c.Photos)
+            .Include(c => c.Breed)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (cat == null) throw new KeyNotFoundException("Cat not found.");
@@ -64,7 +65,7 @@ public class CatService
             Id = Guid.NewGuid(),
             Name = createCatDto.Name,
             Gender = createCatDto.Gender,
-            BirthDate = createCatDto.BirthDate,
+            BirthDate = createCatDto.BirthDate.ToUniversalTime(),
             BreedId = createCatDto.BreedId,
             Description = createCatDto.Description,
             FatherId = createCatDto.FatherId,

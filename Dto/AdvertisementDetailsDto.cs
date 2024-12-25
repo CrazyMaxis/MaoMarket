@@ -35,5 +35,5 @@ public class AdvertisementDetailsDto
     /// Детали пользователя, разместившего рекламу.
     /// </summary>
     [SwaggerSchema(Description = "Детали пользователя, разместившего рекламу")]
-    public UserDetailsDto User { get; set; } = null!;
+    public UserNameDto User { get; set; } = null!;
 }

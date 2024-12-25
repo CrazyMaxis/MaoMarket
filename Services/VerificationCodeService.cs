@@ -23,9 +23,10 @@ public class VerificationCodeService
             .SingleOrDefaultAsync(vc => vc.UserId == userId && vc.Code == code);
     }
 
-    public async Task DeleteVerificationCodeAsync(VerificationCode code)
+    public async Task DeleteAllVerificationCodesForUserAsync(Guid userId)
     {
-        _context.VerificationCodes.Remove(code);
+        var userCodes = _context.VerificationCodes.Where(vc => vc.UserId == userId);
+        _context.VerificationCodes.RemoveRange(userCodes);
         await _context.SaveChangesAsync();
     }
 }

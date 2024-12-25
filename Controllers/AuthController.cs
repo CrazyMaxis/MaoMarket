@@ -65,11 +65,13 @@ public class AuthController : ControllerBase
 
         await _emailService.SendEmailAsync(newUser.Email, "Ваш код подтверждения", $"Ваш код подтверждения: {verificationCode.Code}");
 
-        var userResponse = new UserResponseDto
+        var userResponse = new User
         {
             Id = newUser.Id,
             Name = newUser.Name,
             Email = newUser.Email,
+            PhoneNumber = newUser.PhoneNumber,
+            TelegramUsername = newUser.TelegramUsername,
             Role = newUser.Role,
             IsBlocked = newUser.IsBlocked,
             VerificationRequested = newUser.VerificationRequested
@@ -100,7 +102,7 @@ public class AuthController : ControllerBase
         if (verificationCode == null || verificationCode.ExpiryTime < DateTime.UtcNow)
             return BadRequest("Неверный или истекший код.");
 
-        await _codeService.DeleteVerificationCodeAsync(verificationCode);
+        await _codeService.DeleteAllVerificationCodesForUserAsync(model.UserId);
 
         var user = await _userService.GetByIdAsync(model.UserId);
         if (user == null) return NotFound("Пользователь не найден.");
@@ -143,8 +145,32 @@ public class AuthController : ControllerBase
         if (user == null || !_userService.VerifyPassword(user, model.Password))
             return Unauthorized("Неверный email или пароль.");
 
-        if (!user.IsEmailVerified)
-            return Forbid("Ваш email не подтвержден. Пожалуйста, проверьте почту.");
+        var userResponse = new User
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            TelegramUsername = user.TelegramUsername,
+            Role = user.Role,
+            IsBlocked = user.IsBlocked,
+            VerificationRequested = user.VerificationRequested
+        };
+
+        if (!user.IsEmailVerified) {
+            var verificationCode = new VerificationCode
+            {
+                UserId = user.Id,
+                Code = new Random().Next(100000, 999999).ToString(),
+                ExpiryTime = DateTime.UtcNow.AddMinutes(10)
+            };
+
+            await _codeService.CreateVerificationCodeAsync(verificationCode);
+
+            await _emailService.SendEmailAsync(user.Email, "Ваш код подтверждения", $"Ваш код подтверждения: {verificationCode.Code}");
+
+            return StatusCode(403, new { User = userResponse });
+        }
 
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = new RefreshToken
@@ -158,16 +184,6 @@ public class AuthController : ControllerBase
 
         Response.Cookies.Append("AccessToken", accessToken, new CookieOptions { HttpOnly = true, Secure = true });
         Response.Cookies.Append("RefreshToken", refreshToken.Token, new CookieOptions { HttpOnly = true, Secure = true });
-
-        var userResponse = new UserResponseDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Role = user.Role,
-            IsBlocked = user.IsBlocked,
-            VerificationRequested = user.VerificationRequested
-        };
 
         return Ok(new { User = userResponse });
     }
@@ -208,7 +224,19 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("AccessToken", newAccessToken, new CookieOptions { HttpOnly = true, Secure = true });
         Response.Cookies.Append("RefreshToken", newRefreshToken.Token, new CookieOptions { HttpOnly = true, Secure = true });
 
-        return Ok(new { AccessToken = newAccessToken });
+        var userResponse = new User
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            TelegramUsername = user.TelegramUsername,
+            Role = user.Role,
+            IsBlocked = user.IsBlocked,
+            VerificationRequested = user.VerificationRequested
+        };
+
+        return Ok(new { User = userResponse });
     }
 
     /// <summary>

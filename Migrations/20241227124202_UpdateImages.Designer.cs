@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using api.Data;
@@ -11,9 +12,11 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241227124202_UpdateImages")]
+    partial class UpdateImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,8 +282,6 @@ namespace api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("VerificationCodes");
                 });
 
@@ -363,17 +364,6 @@ namespace api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("api.Models.VerificationCode", b =>
-                {
-                    b.HasOne("api.Models.User", "User")
-                        .WithMany("VerificationCodes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("api.Models.Cat", b =>
                 {
                     b.Navigation("Photos");
@@ -382,8 +372,6 @@ namespace api.Migrations
             modelBuilder.Entity("api.Models.User", b =>
                 {
                     b.Navigation("RefreshTokens");
-
-                    b.Navigation("VerificationCodes");
                 });
 #pragma warning restore 612, 618
         }

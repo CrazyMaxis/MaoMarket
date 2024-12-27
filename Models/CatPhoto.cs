@@ -18,6 +18,4 @@ public class CatPhoto
 
     [Required]
     public string Image { get; set; } = string.Empty;
-
-    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 }

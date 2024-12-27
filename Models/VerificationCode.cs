@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models;
 
@@ -8,7 +9,9 @@ public class VerificationCode
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
+    [ForeignKey("User")]
     public Guid UserId { get; set; }
+    public User User { get; set; } = null!;
 
     [Required]
     [MaxLength(6)]

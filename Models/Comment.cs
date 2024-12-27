@@ -23,7 +23,5 @@ public class Comment
     [Required]
     [MaxLength(500)]
     public string Body { get; set; } = string.Empty;
-    public int Likes { get; set; } = 0;
-    public int Dislikes { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

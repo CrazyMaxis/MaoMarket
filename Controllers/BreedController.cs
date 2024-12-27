@@ -11,7 +11,7 @@ namespace api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = "Administrator, Moderator")]
 public class BreedsController : ControllerBase
 {
     private readonly BreedService _breedService;
@@ -58,7 +58,7 @@ public class BreedsController : ControllerBase
     /// <param name="name">Название для обновления породы.</param>
     /// <response code="200">Пост успешно обновлен.</response>
     /// <response code="404">Пост не найден.</response>
-    [HttpPut("{id:guid}")]
+    [HttpPut("{id}")]
     [SwaggerOperation(Summary = "Обновить породу.", Description = "Обновляет существующую породу.")]
     [SwaggerResponse(200, "Порода успешно обновлена.")]
     [SwaggerResponse(404, "Порода не найдена.")]
@@ -76,7 +76,7 @@ public class BreedsController : ControllerBase
     /// <param name="id">Идентификатор поста для удаления.</param>
     /// <response code="200">Порода успешно удалена.</response>
     /// <response code="404">Порода не найдена.</response>
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("{id}")]
     [SwaggerOperation(Summary = "Удалить породу.", Description = "Удаляет породу по идентификатору.")]
     [SwaggerResponse(200, "Порода успешно удалена.")]
     [SwaggerResponse(404, "Порода не найдена.")]

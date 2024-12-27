@@ -135,15 +135,21 @@ public class AuthController : ControllerBase
     /// <param name="model">Email и пароль пользователя.</param>
     /// <response code="200">Успешный вход.</response>
     /// <response code="401">Неверный email или пароль.</response>
+    /// <response code="423">Ваш аккаунт заблокирован.</response>
     [HttpPost("login")]
     [SwaggerOperation(Summary = "Аутентификация пользователя", Description = "Проверяет учетные данные и возвращает токены.")]
     [SwaggerResponse(200, "Успешный вход.")]
     [SwaggerResponse(401, "Неверный email или пароль.")]
+    [SwaggerResponse(423, "Ваш аккаунт заблокирован.")]
+
     public async Task<IActionResult> Login([FromBody, SwaggerRequestBody(Description = "Данные пользователя")] CredentialsDto model)
     {
         var user = await _userService.GetByEmailAsync(model.Email);
         if (user == null || !_userService.VerifyPassword(user, model.Password))
             return Unauthorized("Неверный email или пароль.");
+
+        if (user.IsBlocked)
+            return StatusCode(423, "Ваш аккаунт заблокирован.");
 
         var userResponse = new User
         {
@@ -196,10 +202,12 @@ public class AuthController : ControllerBase
     /// </remarks>
     /// <response code="200">Токены успешно обновлены.</response>
     /// <response code="401">Неверный или истекший refresh токен.</response>
+    /// <response code="423">Ваш аккаунт заблокирован.</response>
     [HttpPost("refresh")]
     [SwaggerOperation(Summary = "Обновление токенов", Description = "Обновляет пару токенов на основе refresh токена.")]
     [SwaggerResponse(200, "Токены успешно обновлены.")]
     [SwaggerResponse(401, "Неверный или истекший refresh токен.")]
+    [SwaggerResponse(423, "Ваш аккаунт заблокирован.")]
     public async Task<IActionResult> Refresh()
     {
         var refreshTokenValue = Request.Cookies["RefreshToken"];
@@ -210,6 +218,10 @@ public class AuthController : ControllerBase
             return Unauthorized("Неверный или истекший refresh-токен.");
 
         var user = refreshToken.User;
+
+        if (user.IsBlocked)
+            return StatusCode(423, "Ваш аккаунт заблокирован.");
+
         var newAccessToken = _tokenService.GenerateAccessToken(user);
         var newRefreshToken = new RefreshToken
         {

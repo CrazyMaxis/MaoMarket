@@ -115,24 +115,4 @@ public class CommentController : ControllerBase
 
         return Ok("Комментарий успешно удален.");
     }
-
-    /// <summary>
-    /// Добавляет реакцию на комментарий.
-    /// </summary>
-    /// <param name="id">Идентификатор комментария для реакции.</param>
-    /// <param name="dto">Данные для реакции (Like или Dislike).</param>
-    /// <response code="200">Реакция успешно добавлена.</response>
-    /// <response code="404">Комментарий не найден.</response>
-    [HttpPost("{commentId}/react")]
-    [SwaggerOperation(Summary = "Реакция на комментарий", Description = "Добавляет лайк или дизлайк к комментарию.")]
-    [SwaggerResponse(200, "Реакция успешно добавлена.")]
-    [SwaggerResponse(404, "Комментарий не найден.")]
-    public async Task<IActionResult> ReactToComment(Guid commentId, [FromBody, SwaggerRequestBody(Description = "Тип реакции Like или Dislike")] LikeDislikeDto dto)
-    {
-        var updatedComment = await _commentService.AddLikeDislikeToCommentAsync(commentId, dto.Action);
-
-        if (updatedComment == null) return NotFound("Комментария с данным id не существует.");
-
-        return Ok("Реакция успешно добавлена.");
-    }
 }

@@ -20,18 +20,6 @@ public class CommentResponseDto
     public string Body { get; set; } = string.Empty;
 
     /// <summary>
-    /// Количество лайков.
-    /// </summary>
-    [SwaggerSchema(Description = "Количество лайков, полученных комментарием.")]
-    public int Likes { get; set; } = 0;
-
-    /// <summary>
-    /// Количество дизлайков.
-    /// </summary>
-    [SwaggerSchema(Description = "Количество дизлайков, полученных комментарием.")]
-    public int Dislikes { get; set; } = 0;
-
-    /// <summary>
     /// Дата и время создания комментария.
     /// </summary>
     [SwaggerSchema(Description = "Дата и время создания комментария в формате UTC.")]

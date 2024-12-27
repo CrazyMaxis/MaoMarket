@@ -24,12 +24,6 @@ public class PostDto
     public string Body { get; set; } = string.Empty;
 
     /// <summary>
-    /// Список хэштегов для поста.
-    /// </summary>
-    [SwaggerSchema(Description = "Список хэштегов, разделенных запятыми.")]
-    public List<string> Hashtags { get; set; } = new();
-
-    /// <summary>
     /// Изображение для поста.
     /// </summary>
     [SwaggerSchema(Description = "Изображение для поста")]

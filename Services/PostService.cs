@@ -15,14 +15,9 @@ public class PostService
         _minioService = minioService;
     }
 
-    public async Task<PaginatedResultDto<PostSummaryDto>> GetPostsAsync(int page, int pageSize, string? sortDirection, List<string>? hashtags, string? searchTitle)
+    public async Task<PaginatedResultDto<PostSummaryDto>> GetPostsAsync(int page, int pageSize, string? sortDirection, string? searchTitle)
     {
         var query = _dbContext.Posts.AsQueryable();
-
-        if (hashtags != null && hashtags.Count > 0)
-        {
-            query = query.Where(p => hashtags.All(tag => p.Hashtags.Contains(tag)));
-        }
 
         if (!string.IsNullOrEmpty(searchTitle))
         {
@@ -70,7 +65,6 @@ public class PostService
             Id = Guid.NewGuid(),
             Title = post.Title,
             Body = post.Body,
-            Hashtags = post.Hashtags,
         };
 
         if (post.Image != null) 
@@ -93,7 +87,6 @@ public class PostService
 
         existingPost.Title = updatedPost.Title;
         existingPost.Body = updatedPost.Body;
-        existingPost.Hashtags = updatedPost.Hashtags;
 
         if (updatedPost.Image != null) 
         {
@@ -127,26 +120,5 @@ public class PostService
         _dbContext.Posts.Remove(post);
         await _dbContext.SaveChangesAsync();
         return true;
-    }
-
-    public async Task<Post> AddLikeDislikeToPostAsync(Guid postId, string action)
-    {
-        var post = await _dbContext.Posts.FindAsync(postId);
-        if (post == null)
-        {
-            throw new InvalidOperationException("Post not found.");
-        }
-
-        if (action == "Like")
-        {
-            post.Likes++;
-        }
-        else if (action == "Dislike")
-        {
-            post.Dislikes++;
-        }
-
-        await _dbContext.SaveChangesAsync();
-        return post;
     }
 }

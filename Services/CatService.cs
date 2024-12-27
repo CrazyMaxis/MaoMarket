@@ -19,6 +19,7 @@ public class CatService
         var cat = await _dbContext.Cats
             .Include(c => c.Photos)
             .Include(c => c.Breed)
+            .Include(c => c.User)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (cat == null) throw new KeyNotFoundException("Cat not found.");
@@ -35,9 +36,19 @@ public class CatService
             {
                 Id = p.Id,
                 Url = _minioService.GetFileUrl(p.Image)
-            }).ToList()
+            }).ToList(),
+            IsCattery = cat.IsCattery,
+            User = new UserInfoDto
+            {
+                Id = cat.User.Id,
+                Name = cat.User.Name,
+                Email = cat.User.Email,
+                PhoneNumber = cat.User.PhoneNumber!,
+                TelegramUsername = cat.User.TelegramUsername!
+            }
         };
     }
+
 
     public async Task<List<ShortCatDto>> GetCatsWithoutAdvertisementsAsync(Guid userId)
     {

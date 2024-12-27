@@ -23,8 +23,6 @@ public class CommentService
             {
                 Id = c.Id,
                 Body = c.Body,
-                Likes = c.Likes,
-                Dislikes = c.Dislikes,
                 CreatedAt = c.CreatedAt,
                 User = new UserNameDto
                 {
@@ -66,26 +64,5 @@ public class CommentService
         _dbContext.Comments.Remove(comment);
         await _dbContext.SaveChangesAsync();
         return true;
-    }
-
-    public async Task<Comment> AddLikeDislikeToCommentAsync(Guid commentId, string action)
-    {
-        var comment = await _dbContext.Comments.FindAsync(commentId);
-        if (comment == null)
-        {
-            throw new InvalidOperationException("Comment not found.");
-        }
-
-        if (action == "Like")
-        {
-            comment.Likes++;
-        }
-        else if (action == "Dislike")
-        {
-            comment.Dislikes++;
-        }
-
-        await _dbContext.SaveChangesAsync();
-        return comment;
     }
 }

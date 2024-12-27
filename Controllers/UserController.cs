@@ -8,10 +8,12 @@ using Swashbuckle.AspNetCore.Annotations;
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
+    private readonly EmailService _emailService;
 
-    public UserController(UserService userService)
+    public UserController(UserService userService, EmailService emailService)
     {
         _userService = userService;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -151,12 +153,23 @@ public class UserController : ControllerBase
         if (request == null)
             return BadRequest("Тело запроса не должно быть пустым.");
 
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null)
+            return NotFound("Пользователь не найден.");
+
         await _userService.VerifyUserAsync(id, request.IsVerified);
+
+        string subject = request.IsVerified ? "Верификация пользователя успешна" : "Запрос на верификацию отклонен";
+        string body = request.IsVerified 
+            ? $"Здравствуйте, {user.Name}. Ваш аккаунт был успешно верифицирован и теперь имеет статус VerifiedUser."
+            : $"Здравствуйте, {user.Name}. Ваш запрос на верификацию был отклонен.";
+
+        await _emailService.SendEmailAsync(user.Email, subject, body);
+
         return Ok(request.IsVerified 
             ? "Пользователь успешно верифицирован." 
             : "Запрос на верификацию отклонен.");
     }
-
 
     /// <summary>
     /// Изменение роли пользователя администратором.

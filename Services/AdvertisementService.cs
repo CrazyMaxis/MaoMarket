@@ -31,9 +31,9 @@ public class AdvertisementService
         return ad;
     }
 
-    public async Task<Advertisement?> UpdateAdvertisementAsync(Guid id, UpdateAdvertisementDto updateAdDto, Guid userId)
+    public async Task<Advertisement?> UpdateAdvertisementAsync(Guid id, UpdateAdvertisementDto updateAdDto)
     {
-        var ad = await _dbContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+        var ad = await _dbContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id);
 
         if (ad == null) return null;
 
@@ -44,9 +44,9 @@ public class AdvertisementService
         return ad;
     }
 
-    public async Task<bool> DeleteAdvertisementAsync(Guid id, Guid userId, bool isAdmin)
+    public async Task<bool> DeleteAdvertisementAsync(Guid id)
     {
-        var ad = await _dbContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id && (a.UserId == userId || isAdmin));
+        var ad = await _dbContext.Advertisements.FirstOrDefaultAsync(a => a.Id == id);
 
         if (ad == null) return false;
 
@@ -56,15 +56,15 @@ public class AdvertisementService
         return true;
     }
 
-    public async Task<List<AdvertisementResponseDto>> GetAdvertisementsAsync(
-        int page, 
-        int pageSize, 
-        string sortBy, 
-        string sortOrder, 
-        Guid? breedId, 
-        string? searchName, 
-        string? gender, 
-        bool? isCattery)
+    public async Task<PaginatedResultDto<AdvertisementResponseDto>> GetAdvertisementsAsync(
+    int page,
+    int pageSize,
+    string sortBy,
+    string sortOrder,
+    Guid? breedId,
+    string? searchName,
+    string? gender,
+    bool? isCattery)
     {
         var query = _dbContext.Advertisements
             .Include(ad => ad.Cat)
@@ -96,6 +96,9 @@ public class AdvertisementService
 
         query = sortBy.ToLower() switch
         {
+            "price" => sortOrder.ToLower() == "asc"
+                ? query.OrderBy(ad => ad.Price)
+                : query.OrderByDescending(ad => ad.Price),
             "birthdate" => sortOrder.ToLower() == "asc"
                 ? query.OrderBy(ad => ad.Cat.BirthDate)
                 : query.OrderByDescending(ad => ad.Cat.BirthDate),
@@ -104,66 +107,48 @@ public class AdvertisementService
                 : query.OrderByDescending(ad => ad.CreatedAt)
         };
 
+        var totalCount = await query.CountAsync();
+
         var advertisements = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(ad => new AdvertisementResponseDto
             {
                 Id = ad.Id,
+                CatId = ad.Cat.Id,
+                UserId = ad.UserId,
                 Name = ad.Cat.Name,
                 Breed = ad.Cat.Breed.Name,
                 IsCattery = ad.Cat.IsCattery,
                 Gender = ad.Cat.Gender,
                 Price = ad.Price,
                 BirthDate = ad.Cat.BirthDate,
-                PhotoUrl = ad.Cat.Photos.Any() 
-                    ? _minioService.GetFileUrl(ad.Cat.Photos.First().Image) 
+                PhotoUrl = ad.Cat.Photos.Any()
+                    ? _minioService.GetFileUrl(ad.Cat.Photos.First().Image)
                     : string.Empty,
                 CreatedAt = ad.CreatedAt
             })
             .ToListAsync();
 
-        return advertisements;
+        return new PaginatedResultDto<AdvertisementResponseDto>
+        {
+            Items = advertisements,
+            TotalCount = totalCount
+        };
     }
 
 
-    public async Task<AdvertisementDetailsDto?> GetAdvertisementByIdAsync(Guid id)
+    public async Task<AdvertisementSimpleDto?> GetAdvertisementByIdAsync(Guid id)
     {
         var advertisement = await _dbContext.Advertisements
-            .Include(ad => ad.Cat)
-            .ThenInclude(cat => cat.Photos)
-            .Include(ad => ad.Cat.Breed)
-            .Include(ad => ad.User)
+            .Select(ad => new AdvertisementSimpleDto
+            {
+                Id = ad.Id,
+                Price = ad.Price,
+                CatId = ad.CatId
+            })
             .FirstOrDefaultAsync(ad => ad.Id == id);
 
-        if (advertisement == null) return null;
-
-        var advertisementDetailDto = new AdvertisementDetailsDto
-        {
-            Id = advertisement.Id,
-            Price = advertisement.Price,
-            CreatedAt = advertisement.CreatedAt,
-            Cat = new CatDetailsDto
-            {
-                Id = advertisement.Cat.Id,
-                Name = advertisement.Cat.Name,
-                Gender = advertisement.Cat.Gender,
-                Breed = advertisement.Cat.Breed.Name,
-                Description = advertisement.Cat.Description,
-                BirthDate = advertisement.Cat.BirthDate,
-                Photos = advertisement.Cat.Photos.Select(p => new CatPhotoDto
-                {
-                    Id = p.Id,
-                    Url = _minioService.GetFileUrl(p.Image)
-                }).ToList()
-            },
-            User = new UserNameDto
-            {
-                Id = advertisement.User.Id,
-                Name = advertisement.User.Name
-            }
-        };
-
-        return advertisementDetailDto;
+        return advertisement;
     }
 }

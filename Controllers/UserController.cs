@@ -28,13 +28,13 @@ public class UserController : ControllerBase
     [Authorize(Roles = "Administrator")]
     [SwaggerOperation(Summary = "Получение пользователей с фильтрацией и пагинацией", Description = "Администратор может получить список пользователей с фильтрацией по роли, статусу блокировки, поиском по имени и пагинацией.")]
     public async Task<IActionResult> GetUsersFiltered(
-        [FromQuery] int pageNumber = 1, 
+        [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10, 
         [FromQuery] string? role = null, 
         [FromQuery] bool? isBlocked = null, 
         [FromQuery] string? searchName = null)
     {
-        var result = await _userService.GetUsersAsync(pageNumber, pageSize, role, isBlocked, searchName);
+        var result = await _userService.GetUsersAsync(page, pageSize, role, isBlocked, searchName);
         return Ok(result);
     }
 

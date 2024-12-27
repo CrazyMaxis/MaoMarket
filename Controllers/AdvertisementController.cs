@@ -38,16 +38,17 @@ public class AdvertisementController : ControllerBase
     /// <response code="200">Объявление успешно обновлено.</response>
     /// <response code="404">Объявление не найдено.</response>
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Administrator, Moderator, VerifiedUser")]
     [SwaggerOperation(Summary = "Редактирование объявления", Description = "Редактирует существующее объявление.")]
     [SwaggerResponse(200, "Объявление успешно обновлено.")]
     [SwaggerResponse(404, "Объявление не найдено.")]
-    public async Task<IActionResult> UpdateAdvertisement(Guid id, [FromForm, SwaggerRequestBody(Description = "Данные обновленного объявления")] UpdateAdvertisementDto updateAdDto)
+    public async Task<IActionResult> UpdateAdvertisement(Guid id, [FromBody, SwaggerRequestBody(Description = "Данные обновленного объявления")] UpdateAdvertisementDto updateAdDto)
     {
-        var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
-        var result = await _adService.UpdateAdvertisementAsync(id, updateAdDto, userId);
+        var result = await _adService.UpdateAdvertisementAsync(id, updateAdDto);
 
-        if (result == null) return NotFound("Объявление не найдено или у вас нет прав на его редактирование.");
+        if (result == null)
+            return NotFound("Объявление не найдено или у вас нет прав на его редактирование.");
+
         return Ok("Объявление успешно обновлено.");
     }
 
@@ -58,17 +59,17 @@ public class AdvertisementController : ControllerBase
     /// <response code="200">Объявление успешно удалено.</response>
     /// <response code="404">Объявление не найдено.</response>
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Administrator, Moderator, VerifiedUser")]
     [SwaggerOperation(Summary = "Удаление объявления", Description = "Удаляет объявление.")]
     [SwaggerResponse(200, "Объявление успешно удалено.")]
     [SwaggerResponse(404, "Объявление не найдено.")]
     public async Task<IActionResult> DeleteAdvertisement(Guid id)
     {
-        var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
-        var isAdmin = User.Claims.Any(c => c.Type == "role" && c.Value == "admin");
-        var result = await _adService.DeleteAdvertisementAsync(id, userId, isAdmin);
+        var result = await _adService.DeleteAdvertisementAsync(id);
 
-        if (!result) return NotFound("Объявление не найдено или у вас нет прав на его удаление.");
+        if (!result)
+            return NotFound("Объявление не найдено или у вас нет прав на его удаление.");
+
         return Ok("Объявление успешно удалено.");
     }
 

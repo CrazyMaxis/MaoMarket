@@ -39,6 +39,51 @@ public class CatService
         };
     }
 
+    public async Task<List<ShortCatDto>> GetCatsWithoutAdvertisementsAsync(Guid userId)
+    {
+        var userRole = await _dbContext.Users
+            .Where(user => user.Id == userId)
+            .Select(user => user.Role)
+            .FirstOrDefaultAsync();
+
+        if (userRole == null)
+        {
+            throw new UnauthorizedAccessException("Пользователь не найден или не авторизован.");
+        }
+
+        var query = _dbContext.Cats
+            .Include(cat => cat.Photos)
+            .Include(cat => cat.Breed)
+            .AsQueryable();
+
+        if (userRole is "Administrator" or "Moderator")
+        {
+            query = query.Where(cat => cat.IsCattery || cat.UserId == userId);
+        }
+        else
+        {
+            query = query.Where(cat => cat.UserId == userId);
+        }
+
+        query = query.Where(cat => !_dbContext.Advertisements.Any(ad => ad.CatId == cat.Id));
+
+        var cats = await query
+            .Select(cat => new ShortCatDto
+            {
+                Id = cat.Id,
+                Name = cat.Name,
+                Gender = cat.Gender,
+                Breed = cat.Breed,
+                PhotoUrl = cat.Photos.Any()
+                    ? _minioService.GetFileUrl(cat.Photos.First().Image)
+                    : string.Empty
+            })
+            .ToListAsync();
+
+        return cats;
+    }
+
+
     public async Task<List<ShortCatDto>> GetCatsByUserIdAsync(Guid userId)
     {
         var cats = await _dbContext.Cats
@@ -265,17 +310,14 @@ public class CatService
                 : string.Empty
         }).ToList();
 
-        var partner = await GetPartner(cat);
 
         return new PedigreeDto
         {
             Mother = mother,
             Father = father,
             Children = childrenDtos,
-            Partner = partner
         };
     }
-
 
     private async Task<CatPedigreeDto?> GetParentDto(Guid? parentId)
     {
@@ -294,35 +336,6 @@ public class CatService
             Gender = parent.Gender,
             PhotoUrl = parent.Photos.FirstOrDefault()?.Image != null
                 ? _minioService.GetFileUrl(parent.Photos.First().Image)
-                : string.Empty
-        };
-    }
-
-   private async Task<CatPedigreeDto?> GetPartner(Cat cat)
-    {
-        var firstChild = await _dbContext.Cats
-            .Where(c => c.MotherId == cat.Id || c.FatherId == cat.Id)
-            .Include(c => c.Photos)
-            .FirstOrDefaultAsync();
-
-        if (firstChild == null) return null;
-
-        Guid? partnerId = firstChild.MotherId == cat.Id ? firstChild.FatherId : firstChild.MotherId;
-        if (partnerId == null) return null;
-
-        var partner = await _dbContext.Cats
-            .Include(c => c.Photos)
-            .FirstOrDefaultAsync(c => c.Id == partnerId);
-
-        if (partner == null) return null;
-
-        return new CatPedigreeDto
-        {
-            Id = partner.Id,
-            Name = partner.Name,
-            Gender = partner.Gender,
-            PhotoUrl = partner.Photos.FirstOrDefault()?.Image != null
-                ? _minioService.GetFileUrl(partner.Photos.First().Image)
                 : string.Empty
         };
     }

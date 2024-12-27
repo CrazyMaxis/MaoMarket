@@ -54,10 +54,4 @@ public class PedigreeDto
     /// </summary>
     [SwaggerSchema(Description = "Список потомков кота")]
     public List<CatPedigreeDto> Children { get; set; } = new();
-
-    /// <summary>
-    /// Партнер кота.
-    /// </summary>
-    [SwaggerSchema(Description = "Партнер кота")]
-    public CatPedigreeDto? Partner { get; set; }
 }

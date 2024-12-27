@@ -62,6 +62,24 @@ namespace api.Controllers
             return Ok(cats);
         }
 
+        [HttpGet("without-advertisements")]
+        [Authorize]
+        [SwaggerOperation(Summary = "Получение котов без объявлений", Description = "Возвращает котов, для которых еще не созданы объявления.")]
+        [SwaggerResponse(200, "Успешное получение котов.")]
+        [SwaggerResponse(403, "Доступ запрещен.")]
+        public async Task<IActionResult> GetCatsWithoutAdvertisements()
+        {
+            var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
+
+            if (userId == Guid.Empty)
+                return Forbid();
+
+            var cats = await _catService.GetCatsWithoutAdvertisementsAsync(userId);
+
+            return Ok(cats);
+        }
+
+
         /// <summary>
         /// Добавляет нового кота.
         /// </summary>

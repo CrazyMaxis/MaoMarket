@@ -60,35 +60,6 @@ public class CommentController : ControllerBase
     }
 
     /// <summary>
-    /// Обновление комментария.
-    /// </summary>
-    /// <param name="id">Идентификатор комментария.</param>
-    /// <param name="newBody">Новый текст комментария.</param>
-    /// <response code="200">Комментарий успешно обновлен.</response>
-    /// <response code="403">Доступ запрещен.</response>
-    /// <response code="404">Комментарий не найден.</response>
-    [HttpPut("{id}")]
-    [SwaggerOperation(Summary = "Обновление комментария", Description = "Обновляет текст существующего комментария.")]
-    [SwaggerResponse(200, "Комментарий успешно обновлен.")]
-    [SwaggerResponse(403, "Доступ запрещен.")]
-    [SwaggerResponse(404, "Комментарий не найден.")]
-    public async Task<IActionResult> UpdateComment(Guid id, [FromBody, SwaggerRequestBody(Description = "Текст обновленного комментария")] string newBody)
-    {
-        var userId = Guid.Parse(User.Claims.First(c => c.Type == "id").Value);
-        var comment = await _commentService.GetCommentByIdAsync(id);
-
-        if (comment == null)
-            return NotFound("Комментария с данным id не существует.");
-
-        if (comment.UserId != userId && !User.IsInRole("Administrator"))
-            return Forbid("У вас нет прав удалить данный комментарий.");
-
-        await _commentService.UpdateCommentAsync(id, newBody);
-
-        return Ok("Комментарий успешно обновлен.");
-    }
-
-    /// <summary>
     /// Удаление комментария.
     /// </summary>
     /// <param name="id">Идентификатор комментария.</param>

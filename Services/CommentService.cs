@@ -46,16 +46,6 @@ public class CommentService
         return comment;
     }
 
-    public async Task<Comment?> UpdateCommentAsync(Guid id, string newBody)
-    {
-        var comment = await _dbContext.Comments.FindAsync(id);
-        if (comment == null) return null;
-
-        comment.Body = newBody;
-        await _dbContext.SaveChangesAsync();
-        return comment;
-    }
-
     public async Task<bool> DeleteCommentAsync(Guid id)
     {
         var comment = await _dbContext.Comments.FindAsync(id);

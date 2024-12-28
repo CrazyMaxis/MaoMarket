@@ -3,6 +3,7 @@ using api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using api.Dto;
 
 namespace api.Controllers;
 
@@ -44,9 +45,9 @@ public class BreedsController : ControllerBase
     [HttpPost]
     [SwaggerOperation(Summary = "Добавить новую породу.", Description = "Создает новую породу с данными, предоставленными в запросе.")]
     [SwaggerResponse(200, "Порода успешно добавлена.")]
-    public async Task<IActionResult> AddBreed([FromForm, SwaggerRequestBody(Description = "Название новой породы")] string name)
+    public async Task<IActionResult> AddBreed([FromBody, SwaggerRequestBody(Description = "Данные новой породы")] BreedDto request)
     {
-        await _breedService.AddBreedAsync(name);
+        await _breedService.AddBreedAsync(request.Name);
 
         return Ok("Порода успешна добавлена.");
     }
@@ -62,9 +63,9 @@ public class BreedsController : ControllerBase
     [SwaggerOperation(Summary = "Обновить породу.", Description = "Обновляет существующую породу.")]
     [SwaggerResponse(200, "Порода успешно обновлена.")]
     [SwaggerResponse(404, "Порода не найдена.")]
-    public async Task<IActionResult> UpdateBreed(Guid id, [FromForm, SwaggerRequestBody(Description = "Название обновленной породы")] string name)
+    public async Task<IActionResult> UpdateBreed(Guid id, [FromBody, SwaggerRequestBody(Description = "Данные обновленной породы")] BreedDto request)
     {
-        var breed = await _breedService.UpdateBreedAsync(id, name);
+        var breed = await _breedService.UpdateBreedAsync(id, request.Name);
         if (breed == null) return NotFound("Порода с данным id не существует.");
 
         return Ok("Порода успешно обновлена.");

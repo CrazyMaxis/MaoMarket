@@ -29,7 +29,7 @@ public class UserController : ControllerBase
     [HttpGet]
     [Authorize(Roles = "Administrator")]
     [SwaggerOperation(Summary = "Получение пользователей с фильтрацией и пагинацией", Description = "Администратор может получить список пользователей с фильтрацией по роли, статусу блокировки, поиском по имени и пагинацией.")]
-    public async Task<IActionResult> GetUsersFiltered(
+    public async Task<IActionResult> GetUsers(
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10, 
         [FromQuery] string? role = null, 
@@ -51,7 +51,7 @@ public class UserController : ControllerBase
     [HttpGet("verification-requests")]
     [Authorize(Roles = "Administrator, Moderator")]
     [SwaggerOperation(Summary = "Получение пользователей с заявками на верификацию", Description = "Возвращает пользователей, которые отправили заявку на верификацию, с поддержкой пагинации и поиска по имени.")]
-    public async Task<IActionResult> GetVerificationRequests(
+    public async Task<IActionResult> GetVerificationRequest(
         [FromQuery] string? searchName,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -59,7 +59,6 @@ public class UserController : ControllerBase
         var result = await _userService.GetVerificationRequestsAsync(searchName, page, pageSize);
         return Ok(result);
     }
-
 
     /// <summary>
     /// Обновление профиля пользователя.
@@ -85,7 +84,6 @@ public class UserController : ControllerBase
 
         return Ok("Профиль успешно обновлен.");
     }
-
 
     /// <summary>
     /// Блокировка пользователя.
@@ -200,7 +198,6 @@ public class UserController : ControllerBase
         await _userService.ChangeUserRoleAsync(id, dto.NewRole);
         return Ok("Роль пользователя успешно изменена.");
     }
-
 
     /// <summary>
     /// Удаление пользователя администратором.

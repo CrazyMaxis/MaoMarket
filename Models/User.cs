@@ -34,8 +34,5 @@ public class User
 
     [MaxLength(50)]
     public string? TelegramUsername { get; set; }
-
-    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-    public ICollection<VerificationCode> VerificationCodes { get; set; } = new List<VerificationCode>();
 }
 
